@@ -1,0 +1,16 @@
+{
+  "name": "local-ollama-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A local chatbot UI powered by Ollama.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "msnodesqlv8": "^5.2.0",
+    "mssql": "^12.5.4"
+  }
+}

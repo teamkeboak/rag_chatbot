@@ -1,0 +1,17 @@
+# Secrets and local configuration
+.env
+*.env
+!.env.example
+
+# Node.js dependencies
+node_modules/
+
+# Runtime logs and audit output
+logs/
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

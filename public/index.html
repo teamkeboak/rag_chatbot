@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Local Loan Data AI</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="chat-panel" aria-label="Local chatbot">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">LD</span>
+            <div>
+              <p class="eyebrow">Local Loan Data AI</p>
+              <h1>Ask in Khmer or generate SQL</h1>
+            </div>
+          </div>
+          <div class="control-grid">
+            <div class="controls">
+              <label for="modeSelect">Mode</label>
+              <select id="modeSelect" aria-label="Assistant mode">
+                <option value="khmer">Khmer loan answer</option>
+                <option value="sql">SQL for loan warehouse</option>
+              </select>
+            </div>
+            <div class="controls">
+              <label for="modelSelect">Locked model</label>
+              <select id="modelSelect" aria-label="Locked Ollama model" disabled></select>
+            </div>
+            <label class="toggle-control" for="reasoningToggle">
+              <input id="reasoningToggle" type="checkbox">
+              <span>Show thinking summary</span>
+            </label>
+          </div>
+        </header>
+
+        <div id="status" class="status" role="status">Connecting to Ollama...</div>
+        <details class="eval-details" aria-label="Evaluation summary">
+          <summary>
+            <span class="eval-summary-label">Quality &amp; audit details</span>
+            <span class="eval-summary-hint">tap to view metrics</span>
+          </summary>
+          <div class="evaluation-panel">
+            <div id="evaluationMetrics" class="metric-row">Evaluation metrics will appear after the first audited answer.</div>
+            <div id="auditPreview" class="audit-preview">Audit log: waiting for activity.</div>
+          </div>
+        </details>
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="chatForm" class="composer">
+          <textarea
+            id="promptInput"
+            rows="1"
+            placeholder="Ask your local model..."
+            autocomplete="off"
+            required
+          ></textarea>
+          <button id="sendButton" type="submit">Send</button>
+        </form>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
