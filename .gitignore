@@ -15,3 +15,9 @@ logs/
 Thumbs.db
 .vscode/
 .idea/
+
+graphify-out/* 
+IMPLEMENTATION_REPORT.md
+CLAUDE.md
+Person-1-Report.md
+person-2-report-advanced-retrieval-engine.md

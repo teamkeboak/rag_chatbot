@@ -251,7 +251,62 @@ function hasThaiScript(text) {
   return /[\u0E00-\u0E7F]/.test(String(text || ""));
 }
 
-function buildSystemPrompt(modeName, requestType) {
+const RETRIEVAL_SERVICE_URL = process.env.RETRIEVAL_SERVICE_URL || "http://localhost:8001";
+let _retrievalServiceAvailable = null; // null = unchecked, true/false = cached result
+
+async function checkRetrievalService() {
+  if (_retrievalServiceAvailable !== null) return _retrievalServiceAvailable;
+  try {
+    const res = await fetch(`${RETRIEVAL_SERVICE_URL}/health`, { signal: AbortSignal.timeout(1500) });
+    _retrievalServiceAvailable = res.ok;
+  } catch {
+    _retrievalServiceAvailable = false;
+  }
+  return _retrievalServiceAvailable;
+}
+
+// Reset availability check every 60s so recovery is detected automatically
+setInterval(() => { _retrievalServiceAvailable = null; }, 60_000);
+
+async function fetchRetrievedContext(userQuestion, modeName) {
+  try {
+    const available = await checkRetrievalService();
+    if (!available) return null;
+
+    const res = await fetch(`${RETRIEVAL_SERVICE_URL}/retrieve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_question: userQuestion, mode: modeName }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function buildContextFromRetrieved(retrievalResult) {
+  if (!retrievalResult || !Array.isArray(retrievalResult.retrieved_context)) {
+    return getMetadataContext(); // fallback to static full-dump
+  }
+  const chunks = retrievalResult.retrieved_context
+    .filter((c) => !c._anchor && c.text)
+    .map((c) => `[${c.source} | ${c.document_type}]\n${c.text}`)
+    .join("\n\n---\n\n");
+
+  const conflictNote = retrievalResult.conflict_detected
+    ? `\n\n[NOTE: Definition conflict detected. Authoritative source used: ${
+        Object.values(retrievalResult.conflicts || [])
+          .map((cf) => cf.chosen_source)
+          .join(", ")
+      }]`
+    : "";
+
+  return chunks + conflictNote;
+}
+
+function buildSystemPrompt(modeName, requestType, retrievedContext = null) {
   const mode = MODES[modeName];
   const sqlHelpRule = modeName === "sql" && requestType !== "thinking"
     ? [
@@ -277,6 +332,10 @@ function buildSystemPrompt(modeName, requestType) {
         "If writing SQL, include one fenced ```sql code block.",
       ].join(" ");
 
+  const context = retrievedContext !== null
+    ? retrievedContext
+    : getMetadataContext();
+
   return [
     "You are a local banking data warehouse assistant for loan analytics.",
     mode.languageRule,
@@ -291,8 +350,8 @@ function buildSystemPrompt(modeName, requestType) {
     "Do not invent exact column names if the question requires schema details that are not provided. State assumptions briefly.",
     sqlHelpRule,
     visibleThinkingRule,
-    "Metadata, KPI glossary, schema relationships, business rules, and approved SQL examples follow:",
-    getMetadataContext(),
+    "Relevant knowledge base context follows (most trusted sources first):",
+    context,
     "Final output must not contain Thai script characters.",
   ].join("\n");
 }
@@ -914,8 +973,12 @@ async function handleChat(req, res) {
     return;
   }
 
+  // Attempt advanced retrieval — falls back to static getMetadataContext() if service is down
+  const retrievalResult = await fetchRetrievedContext(question, modeName);
+  const retrievedContext = buildContextFromRetrieved(retrievalResult);
+
   const messages = [
-    { role: "system", content: buildSystemPrompt(modeName, requestType) },
+    { role: "system", content: buildSystemPrompt(modeName, requestType, retrievedContext) },
     ...clientMessages,
   ];
   const temperature = requestType === "thinking" ? Math.min(mode.temperature, 0.2) : mode.temperature;

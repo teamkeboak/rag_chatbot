@@ -1,0 +1,62 @@
+documents:
+  business_rules.md:
+    priority: 1
+    status: approved
+    document_type: business_rule
+    purpose: official_kpi_formula
+    trust_level: high
+    can_use_for_official_answer: true
+
+  kpi_glossary.md:
+    priority: 2
+    status: approved
+    document_type: glossary
+    purpose: business_definition
+    trust_level: high
+    can_use_for_official_answer: true
+
+  data_dictionary.md:
+    priority: 3
+    status: approved
+    document_type: schema
+    purpose: table_column_definition
+    trust_level: high
+    can_use_for_official_answer: true
+
+  schema_relationships.md:
+    priority: 4
+    status: approved
+    document_type: schema
+    purpose: schema_join_logic
+    trust_level: high
+    can_use_for_official_answer: true
+
+  approved_sql_examples.md:
+    priority: 5
+    status: approved
+    document_type: sql_example
+    purpose: safe_sql_pattern
+    trust_level: high
+    can_use_for_official_answer: true
+
+  warehouse_schema.md:
+    priority: 6
+    status: approved
+    document_type: schema
+    purpose: full_schema_reference
+    trust_level: high
+    can_use_for_official_answer: true
+
+  database_policy.md:
+    priority: 7
+    status: approved
+    document_type: policy
+    purpose: safety_rules
+    trust_level: high
+    can_use_for_official_answer: true
+
+uploaded_documents:
+  default_priority: 9
+  default_status: pending
+  default_trust_level: low
+  can_use_for_official_answer: false
